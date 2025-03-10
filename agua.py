@@ -49,8 +49,8 @@ xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_stat
 red = Sequential()
 # Crear capas
 entrada = Dense(units=9, activation='relu')
-oculta1 = Dense(units=50, activation='relu')
-oculta2 = Dense(units=100, activation='relu')
+oculta1 = Dense(units=500, activation='relu')
+oculta2 = Dense(units=500, activation='relu')
 salida = Dense(units=1, activation='sigmoid')
 
 #Incorporar Capas a Red
@@ -66,10 +66,11 @@ red.compile(
     metrics =['accuracy'])
 
  #1er entrenamiento 
-history = red.fit(xtrain, ytrain, batch_size=50, epochs=100)
+history = red.fit(xtrain, ytrain, batch_size=30, epochs=100)
 # 2do Entrenamiento
 history2 = red.fit(xtrain, ytrain, batch_size=50, epochs=100) 
 
+'''EVALUACIÓN'''
 plt.plot(history.history['accuracy'] + history2.history['accuracy'])
 plt.show()
 
@@ -81,7 +82,11 @@ y_prediction= red.predict(xtest)
 #Redondeo para 0 y 1
 y_prediction = np.round(y_prediction)
 
+from sklearn.metrics import accuracy_score, confusion_matrix
+score = accuracy_score(ytest, y_prediction)
+result = red.evaluate(xtest, ytest)
 
+matrix = confusion_matrix(ytest, y_prediction)
 
 
 
