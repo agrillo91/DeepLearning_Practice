@@ -44,38 +44,81 @@ x = scaler.fit_transform(x)
 from sklearn.model_selection import train_test_split
 xtrain, xtest, ytrain, ytest = train_test_split(x, y, test_size=0.2, random_state=0)
 
+from keras import regularizers
+from tensorflow.keras.layers import Dropout
+
 '''RED NEURONAL'''
 #Crear modelo de Red Neuronal
 red = Sequential()
 # Crear capas
-entrada = Dense(units=9, activation='relu')
-oculta1 = Dense(units=500, activation='relu')
-oculta2 = Dense(units=500, activation='relu')
+entrada = Dense(units=5, activation='relu', kernel_regularizer = regularizers.l1_l2(l1=0.001, l2=0.001))
+oculta1 = Dense(units=5, activation='relu', kernel_regularizer = regularizers.l1_l2(l1=0.001, l2=0.001))
 salida = Dense(units=1, activation='sigmoid')
 
 #Incorporar Capas a Red
 red.add(entrada)
+red.add(Dropout(0.5))
 red.add(oculta1)
-red.add(oculta2)
+red.add(Dropout(0.5))
 red.add(salida)
 
 #Compilacion de Red
 red.compile(
-    optimizer = tf.keras.optimizers.SGD(learning_rate=0.01),
+    optimizer = tf.keras.optimizers.RMSprop(learning_rate=0.01),
     loss = 'binary_crossentropy',
     metrics =['accuracy'])
 
- #1er entrenamiento 
-history = red.fit(xtrain, ytrain, batch_size=30, epochs=100)
+x_train_new = xtrain[1620:]
+x_val = xtrain[:1000]
+
+y_train_new = ytrain[1620:]
+y_val = ytrain[:1000]
+
+'''
+ #1er entrenamiento  
+history = red.fit(xtrain, ytrain, batch_size=30, epochs=100) 
+
 # 2do Entrenamiento
 history2 = red.fit(xtrain, ytrain, batch_size=50, epochs=100) 
+'''
 
-'''EVALUACIÓN'''
+# 3er Entrenamiento
+history = red.fit(x_train_new, y_train_new,
+                  validation_data = (x_val, y_val), 
+                  batch_size=100, 
+                  epochs=15)
+
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+epocas = range(1, len(loss) + 1)
+
+plt.plot(epocas, loss, 'bo', label='Perdida de entrenamiento')
+plt.plot(epocas, val_loss, 'b', label='Perdida de Evaluacion')
+plt.title('Gráfica de Perdidas')
+plt.legend()
+plt.xlabel('Epocas')
+plt.ylabel('Pérdida')
+plt.show()
+
+precision = history.history['accuracy']
+val_precision = history.history['val_accuracy']
+epocas = range(1, len(precision) + 1)
+
+plt.plot(epocas, precision, 'bo', label='Precisión de entrenamiento')
+plt.plot(epocas, val_precision, 'b', label='Precisión de Evaluacion')
+plt.title('Gráfica de Precision')
+plt.legend()
+plt.xlabel('Epocas')
+plt.ylabel('Precision')
+plt.show()
+
+'''
 plt.plot(history.history['accuracy'] + history2.history['accuracy'])
 plt.show()
 
 plt.plot(history.history['loss'] + history2.history['loss'])
 plt.show()
+''' 
 
 #Valoracion
 y_prediction= red.predict(xtest)
